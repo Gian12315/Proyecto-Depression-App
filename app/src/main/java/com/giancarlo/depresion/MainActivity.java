@@ -26,13 +26,18 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -167,22 +172,42 @@ public class MainActivity extends AppCompatActivity {
 
     private void getHTTP() {
         RequestQueue volleyQueue = Volley.newRequestQueue(MainActivity.this);
-        String url = "http://10.0.2.2:3000/metrics";
+        String url = "http://10.0.2.2:3000/query";
+        final String out_url = url + "?query=" + URLEncoder.encode(editText.getText().toString());
 
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
-                Request.Method.GET,
-                url,
-                null,
-                (Response.Listener<JSONArray>) response -> {
-                    output.setText( response.toString() );
-                },
-                (Response.ErrorListener) error -> {
-                    output.setText( "yasta" );
-                    Log.e("MainActivity", "loadDogImage error: " + error.getLocalizedMessage());
-                }
-        );
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, out_url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String s) {
+                output.setText(s);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
 
-        volleyQueue.add(jsonArrayRequest);
+               output.setText("fail");
+               output.setText(out_url);
+            }
+        });
+
+        stringRequest.setRetryPolicy(new RetryPolicy() {
+            @Override
+            public int getCurrentTimeout() {
+                return 50000;
+            }
+
+            @Override
+            public int getCurrentRetryCount() {
+                return 50000;
+            }
+
+            @Override
+            public void retry(VolleyError error) throws VolleyError {
+
+            }
+        });
+
+
+        volleyQueue.add(stringRequest);
     }
 
     @Override

@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
     private void getHTTP() {
         RequestQueue volleyQueue = Volley.newRequestQueue(MainActivity.this);
 
-        QueryHandler queryHandler = new QueryHandler("http:10.0.2.2:3005/query");
+        QueryHandler queryHandler = new QueryHandler("http:10.0.2.2:3000/query");
 
         String url = queryHandler.constructURL(editText.getText().toString());
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -190,8 +190,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 output.setText(out);
-
-
 
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
                         AppDatabase.class, "register").allowMainThreadQueries()

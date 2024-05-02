@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    app:flow_verticalAlign="center"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -47,6 +48,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/out"
         android:id="@+id/humidity"/>
 
 </LinearLayout>

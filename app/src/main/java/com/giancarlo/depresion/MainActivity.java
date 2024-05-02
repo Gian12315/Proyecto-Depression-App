@@ -4,16 +4,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.loader.content.Loader;
+import androidx.room.Room;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.text.BidiFormatter;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -36,10 +41,16 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.logging.Logger;
+
+import com.giancarlo.depresion.QueryHandler;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech t1;
 
     private TextView output;
+    BidiFormatter formatter = BidiFormatter.getInstance();
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -66,11 +79,13 @@ public class MainActivity extends AppCompatActivity {
         micButton = findViewById(R.id.button);
         ttsButton = findViewById(R.id.ttsButton);
         output = findViewById(R.id.humidity);
+        output.setTextLocale(new Locale("es", "MX"));
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
         final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-MX");
+
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
@@ -155,39 +170,54 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        speechRecognizer.destroy();
-    }
-
-    private void checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},RecordAudioRequestCode);
-        }
     }
 
     private void getHTTP() {
         RequestQueue volleyQueue = Volley.newRequestQueue(MainActivity.this);
-        String url = "http://10.0.2.2:3000/query";
-        final String out_url = url + "?query=" + URLEncoder.encode(editText.getText().toString());
 
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, out_url, new Response.Listener<String>() {
+        QueryHandler queryHandler = new QueryHandler("http:10.0.2.2:3005/query");
+
+        String url = queryHandler.constructURL(editText.getText().toString());
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String s) {
-                output.setText(s);
+            public void onResponse(String input) {
+
+                String out;
+                try {
+                    out = new String(input.getBytes("ISO-8859-1"), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                output.setText(out);
+
+
+
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "register").allowMainThreadQueries()
+                                .fallbackToDestructiveMigration().build();
+
+                RegisterDao dao = db.registerDao();
+                dao.insertAll(new Register(editText.getText().toString(), out));
+
+
+                List<Register> registers = dao.getAll();
+
+                output.setText(String.valueOf(registers.size()));
+
+                output.setText(registers.get(15).input);
+
+
+
+                t1.speak(input, TextToSpeech.QUEUE_FLUSH, null);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-
-               output.setText("fail");
-               output.setText(out_url);
+                output.setText(url);
             }
         });
+
 
         stringRequest.setRetryPolicy(new RetryPolicy() {
             @Override
@@ -207,7 +237,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
         volleyQueue.add(stringRequest);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        speechRecognizer.destroy();
+    }
+
+    private void checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},RecordAudioRequestCode);
+        }
     }
 
     @Override

@@ -38,6 +38,8 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
+    implementation ("com.opencsv:opencsv:4.6")
+
 
     implementation("com.android.volley:volley:1.2.1")
 

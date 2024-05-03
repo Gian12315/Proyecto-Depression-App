@@ -11,9 +11,12 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -41,6 +44,8 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -51,6 +56,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 import com.giancarlo.depresion.QueryHandler;
+import com.opencsv.CSVWriter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private Button micButton;
 
     private Button ttsButton;
+
+    private Button export;
 
     private TextToSpeech t1;
 
@@ -78,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         editText = findViewById(R.id.text);
         micButton = findViewById(R.id.button);
         ttsButton = findViewById(R.id.ttsButton);
+        export = findViewById(R.id.export);
         output = findViewById(R.id.humidity);
         output.setTextLocale(new Locale("es", "MX"));
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
@@ -170,6 +179,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        export.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exportPDF();
+            }
+        });
     }
 
     private void getHTTP() {
@@ -203,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
 
                 output.setText(String.valueOf(registers.size()));
 
-                output.setText(registers.get(15).input);
+                output.setText(registers.get(1).input);
 
 
 
@@ -239,6 +254,42 @@ public class MainActivity extends AppCompatActivity {
         volleyQueue.add(stringRequest);
     }
 
+    private void exportPDF() {
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "register").allowMainThreadQueries()
+                .fallbackToDestructiveMigration().build();
+
+        RegisterDao dao = db.registerDao();
+
+        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
+        if (!exportDir.exists())
+        {
+            exportDir.mkdirs();
+        }
+
+        File file = new File(exportDir, "results.csv");
+        try
+        {
+            file.createNewFile();
+            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+            List<Register> registers = dao.getAll();
+            csvWrite.writeNext(new String[] {"Time", "Input", "Output"});
+
+            for (Register register : registers) {
+                String arrStr[] = {register.date, register.input, register.output};
+                csvWrite.writeNext(arrStr);
+            }
+
+            Toast.makeText(getApplicationContext(), "Wrote to csv.", Toast.LENGTH_SHORT).show();
+
+            csvWrite.flush();
+            csvWrite.close();
+        }
+        catch(Exception sqlEx)
+        {
+            Log.e("MainActivity", sqlEx.getMessage(), sqlEx);
+        }
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -257,6 +308,14 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == RecordAudioRequestCode && grantResults.length > 0 ){
             if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 Toast.makeText(this,"Permission Granted", Toast.LENGTH_SHORT).show();
+        }
+
+        if (Build.VERSION.SDK_INT >= 30){
+            if (!Environment.isExternalStorageManager()){
+                Intent getpermission = new Intent();
+                getpermission.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(getpermission);
+            }
         }
     }
 }

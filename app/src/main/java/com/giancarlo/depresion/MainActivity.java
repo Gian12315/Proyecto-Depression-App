@@ -72,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech t1;
 
     private TextView output;
-    BidiFormatter formatter = BidiFormatter.getInstance();
-
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -94,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-MX");
-
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override

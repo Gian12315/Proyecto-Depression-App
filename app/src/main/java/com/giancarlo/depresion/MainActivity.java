@@ -1,6 +1,7 @@
 package com.giancarlo.depresion;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -8,7 +9,9 @@ import androidx.loader.content.Loader;
 import androidx.room.Room;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -22,7 +25,10 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.text.BidiFormatter;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -30,6 +36,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -73,6 +80,20 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView output;
 
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true; /** true -> el menú ya está visible */
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.export) {
+            exportPDF();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,10 +102,17 @@ public class MainActivity extends AppCompatActivity {
             checkPermission();
         }
 
+
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+
         editText = findViewById(R.id.text);
         micButton = findViewById(R.id.button);
         ttsButton = findViewById(R.id.ttsButton);
-        export = findViewById(R.id.export);
+
         output = findViewById(R.id.humidity);
         output.setTextLocale(new Locale("es", "MX"));
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
@@ -176,18 +204,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        export.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exportPDF();
-            }
-        });
     }
 
     private void getHTTP() {
         RequestQueue volleyQueue = Volley.newRequestQueue(MainActivity.this);
 
-        QueryHandler queryHandler = new QueryHandler("http:10.0.2.2:3000/query");
+        QueryHandler queryHandler = new QueryHandler("http://192.168.194.148:3000/query");
 
         String url = queryHandler.constructURL(editText.getText().toString());
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -215,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
                 output.setText(String.valueOf(registers.size()));
 
-                output.setText(registers.get(1).input);
+                output.setText(registers.get(registers.size() - 1).output);
 
 
 

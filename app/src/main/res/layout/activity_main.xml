@@ -1,27 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:layout_gravity="center"
-    
+    app:flexDirection="column"
+    android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+    app:justifyContent="space_around"
+    android:background="@color/blue_20"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+
+    <com.google.android.flexbox.FlexboxLayout
         android:layout_width="match_parent"
         android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:gravity="center"
-
+        app:flexDirection="column"
+        app:alignItems="center"
         android:layout_height="wrap_content">
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/button"
             android:padding="10dp"
+            android:layout_marginBottom="20dp"
             android:hint="Tap to Speak"
             android:id="@+id/text"
             android:layout_centerInParent="true"
@@ -31,30 +43,35 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Record"
+            android:backgroundTint="@color/green_20"
             android:id="@+id/button"/>
 
-    </LinearLayout>
+    </com.google.android.flexbox.FlexboxLayout>
 
-    <LinearLayout
+    <com.google.android.flexbox.FlexboxLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
-        <Button
+        app:flexDirection="column"
+        app:alignItems="center">
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Read"
-            android:id="@+id/ttsButton"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Export"
-            android:id="@+id/export"/>
-    </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
+            android:id="@+id/humidity"/>
+    </com.google.android.flexbox.FlexboxLayout>
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/out"
-        android:id="@+id/humidity"/>
+        app:justifyContent="space_evenly">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:backgroundTint="@color/green_20"
+            android:id="@+id/ttsButton"/>
+    </com.google.android.flexbox.FlexboxLayout>
 
-</LinearLayout>
+
+
+</com.google.android.flexbox.FlexboxLayout>

@@ -40,7 +40,7 @@ dependencies {
 
     implementation ("com.opencsv:opencsv:4.6")
 
-
+    implementation ("com.google.android.flexbox:flexbox:3.0.0")
     implementation("com.android.volley:volley:1.2.1")
 
     testImplementation("junit:junit:4.13.2")
